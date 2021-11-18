@@ -1,5 +1,6 @@
 # FINANCIAL MODELLING / DATA CALCULATIONS
 
+# Input tvm package
 library(tvm)
 
 # calculate total debt to household income ratio
@@ -14,20 +15,20 @@ loanToValueRatioCalc <- function(balance, houseValue){
 
 # calculate predicted refinance interest rate
 predictedRefiRateCalc <- function(creditScore, loanToValueRatio){
-  # "Model" rationale
+  # Model rationale
   # best rate: 2.374% - 10yr, well qualified buyer  - source: https://www.nerdwallet.com/mortgages/mortgage-rates
   # max rate: 4.142% - 30yr, poorly qualified buyer - source ^
   # 300-850 credit score 
   # 0.05-0.9 loan to value ratio
-  # assume credit and l:v each contribute 50% with linear variation to calculate rate
+  # assume credit and l:v percentiles each contribute 50% with linear variation to calculate rate
   
-  maxRate <- .04142 # should be dynamic
-  minRate <- .02374 # should be dynamic
+  maxRate <- .04142 # should be dynamic in future
+  minRate <- .02374 # should be dynamic in future
   
   cs_percentile <- (creditScore-300)/550 # higher is better
   ltv_percentile <- 1 - (loanToValueRatio-0.05)/0.9 # higher is better (after inversing)
-  multiplier <- (0.5*cs_percentile + 0.5*ltv_percentile) # higher is better
-  rate <- maxRate - (maxRate-minRate) * multiplier # higher is worse
+  multiplier <- (0.5*cs_percentile + 0.5*ltv_percentile) # higher is better (weighted avg percentile)
+  rate <- maxRate - (maxRate-minRate) * multiplier # higher is worse (multiplier is negative)
   
   return(rate)
 }
@@ -44,7 +45,9 @@ predictedRefiClosingCostsCalc <- function(currentBalance){
 
 # calculate monthly refinance payment based on predicted refi rate
 refiMonthlyPaymentCalc <- function(refiRate, currentBalance, monthsRemaining){
+  # need monthly rate
   monthlyRate <- refiRate / 12
+  # use tvm package
   monthlyPayment <- pmt(currentBalance, monthsRemaining, monthlyRate)
   return(monthlyPayment)
 }
@@ -77,13 +80,16 @@ breakevenCalc <- function(refiClosingCosts, refiMonthlyPayment, currentMonthlyPa
 
 # function to determine final recommendation
 decisionFunction <- function(npvRefi, npvCurrent, totalCostRefi, totalCostCurrent){
+  # disc. and undisc. cost of refi > current
   if(npvRefi > npvCurrent & totalCostRefi > totalCostCurrent){
     return("-- Do nothing --")
+    # disc. and undisc. cost of refi < current
   }else if(npvRefi < npvCurrent & totalCostRefi < totalCostCurrent){
     return("++ Refi!")
+    # mixed disc. and undisc. probs not worth enough for the time required
   }else if(npvRefi < npvCurrent & totalCostRefi > totalCostCurrent){
-    return("~~ Refi to Pay less now, more later")
+    return("-- Do nothing --")
   }else{
-    return("~~ Refi to Pay more now, less later") 
+    return(paste("You stand to gain: ", totalCostCurrent-totalCostRefi, " it's probably not worth your time"))
   }
 }

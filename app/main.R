@@ -12,7 +12,6 @@ source("outputFunction.R")
 # Read input
 refi_df <- readInputFile(inputFile.csv)
 
-
 # -------------------
 # FINANCIAL MODELLING / DATA CALCULATION
 
@@ -58,11 +57,9 @@ refi_df <- cbind(refi_df, decision)
 
 # -------------------
 # CONSTRUCT AND PUBLISH OUTPUT
-refi_df
 
+# Write output file
 outputFile(refi_df, "outputFile")
-
-
 
 # -------------------
 # END OF CALCULATOR
