@@ -1,0 +1,69 @@
+# CLEAR CURRENT WORKSPACE DATA
+rm(list=ls()) 
+
+# CONNECT MODULARIZED FILES
+source("inputFunction.R")
+source("financialModelling.R")
+source("outputFunction.R")
+
+# -------------------
+# START CALCULATOR
+
+# Read input
+refi_df <- readInputFile(inputFile.csv)
+
+
+# -------------------
+# FINANCIAL MODELLING / DATA CALCULATION
+
+# Caclulate debt to income ratio for every input and append a new column to refi_df
+debtToIncomeRatio <- unlist(mapply(debtToIncomeRatioCalc, refi_df$debtLoad, refi_df$householdIncome))
+refi_df <- cbind(refi_df, debtToIncomeRatio)
+
+# Caclulate loan to value ratio for every input and append a new column to refi_df
+loanToValueRatio <- unlist(mapply(loanToValueRatioCalc, refi_df$currentBalance, refi_df$houseValue))
+refi_df <- cbind(refi_df, loanToValueRatio)
+
+# Caclulate predicted refi rate for every input and append a new column to refi_df
+predictedRefiRate <- unlist(mapply(predictedRefiRateCalc, refi_df$creditScore, refi_df$loanToValueRatio))
+refi_df <- cbind(refi_df, predictedRefiRate)
+
+# Caclulate predicted refi closing costs for every input and append a new column to refi_df
+predictedRefiClosingCosts <- unlist(mapply(predictedRefiClosingCostsCalc, refi_df$currentBalance))
+refi_df <- cbind(refi_df, predictedRefiClosingCosts)
+
+# Caclulate refi monthly payment for every input and append a new column to refi_df
+refiMonthlyPayment <- unlist(mapply(refiMonthlyPaymentCalc, refi_df$predictedRefiRate, refi_df$currentBalance, refi_df$monthsRemaining))
+refi_df <- cbind(refi_df, refiMonthlyPayment)
+
+# Caclulate gross total cost for both current & refi and append new columns to refi_df
+grossTotalCostCurrent <- unlist(mapply(grossTotalCostCalc, refi_df$monthlyPayment, refi_df$monthsRemaining))
+refi_df <- cbind(refi_df, grossTotalCostCurrent)
+grossTotalCostRefi <- unlist(mapply(grossTotalCostCalc, refi_df$refiMonthlyPayment, refi_df$monthsRemaining, refi_df$predictedRefiClosingCosts))
+refi_df <- cbind(refi_df, grossTotalCostRefi)
+
+# Caclulate npv for both current & refi and append new columns to refi_df
+npvCurrent <- unlist(mapply(npvCalc, refi_df$monthlyPayment, refi_df$monthsRemaining, refi_df$discountRate))
+refi_df <- cbind(refi_df, npvCurrent)
+npvRefi <- unlist(mapply(npvCalc, refi_df$refiMonthlyPayment, refi_df$monthsRemaining, refi_df$discountRate, refi_df$predictedRefiClosingCosts))
+refi_df <- cbind(refi_df, npvRefi)
+
+# Caclulate time to breakeven for current & refi and append new column to refi_df
+timeToBreakeven <- unlist(mapply(breakevenCalc, refi_df$predictedRefiClosingCosts, refi_df$refiMonthlyPayment, refi_df$monthlyPayment, refi_df$grossTotalCostCurrent, refi_df$grossTotalCostRefi))
+refi_df <- cbind(refi_df, timeToBreakeven)
+
+# Function to dissect both options and make decision - appends decision column to refi_df
+decision <- unlist(mapply(decisionFunction, refi_df$npvRefi, refi_df$npvCurrent, refi_df$grossTotalCostRefi, refi_df$grossTotalCostCurrent))
+refi_df <- cbind(refi_df, decision)
+
+# -------------------
+# CONSTRUCT AND PUBLISH OUTPUT
+refi_df
+
+outputFile(refi_df, "outputFile")
+
+
+
+# -------------------
+# END OF CALCULATOR
+

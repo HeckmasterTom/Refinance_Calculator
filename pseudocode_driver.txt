@@ -1,0 +1,59 @@
+
+#open inputFile, outputFile, start program
+start(inputFile)
+
+#loop through each line in the inputFile
+for(i in range(lines(inputFile))):
+
+  #read in and parse one line of input
+  read(line1, inputFile)
+
+  #construct person object
+  person_i <- person(name,
+                      address,
+                      creditScore,
+                      debtLoad,
+                      householdIncome,
+                      currentLoan(currentBalance,
+                                  monthlyPayment,
+                                  interestRate
+                                  )
+                    )
+
+  #add refinance loan to loans linked list for person_i
+  person_i.predictedRefiRateCalc()
+
+  #create refinanceCalculator object for this person
+  refiCalc_i <- refinanceCalculator(person_i)
+
+  #run refinanceCalculator methods
+  refiCalc_i.breakevenDateCalc()
+  refiCalc_i.createGraph()
+  refiCalc_i.cheaperOptionCalc()
+  refiCalc_i.createAnalysis()
+  refiCalc_i.printOutputToFile()
+
+  #releaseMemory
+  for j in range(len(person_i.loans))
+    delete person_i.loans[j]
+  delete refinanceCalculator_i
+  delete person_i
+
+  #end of loop
+
+
+# close inputFile, close outputFile, end program
+publishOutputFile
+
+
+
+
+
+
+
+
+
+
+
+
+  s

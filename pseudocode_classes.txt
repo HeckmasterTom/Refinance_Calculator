@@ -1,0 +1,80 @@
+
+
+class:
+  loan
+  datapoints:
+    type (current or prospective)
+    startDate
+    maturityDate
+    duration
+    interestRate
+    beginningPrincipal
+    currentBalance
+    closingCosts
+    discountRate
+    netPresentValue
+    grossTotalCost
+    grossTotalCostRemaining
+    monthlyPayment
+    monthsToMaturity
+  methods:
+    netPresentValueCalc(monthlyPayment, discountRate)
+    grossTotalCostRemainingCalc(monthlyPayment, monthsToMaturity)
+    grossTotalCostCalc(monthlyPayment, duration)
+    monthlyPaymentCalc(beginningPrincipal, interestRate, duration)
+
+class:
+  person
+  datapoints:
+    name
+    address
+    loans
+    creditScore
+    debtLoad
+    householdIncome
+    predictedRefiRate
+    debtToIncomeRatio
+  methods:
+    predictedRefiRateCalc(creditScore, debtLoad, loans->current->currentBalance)
+    debtToIncomeRatioCalc(debtLoad, householdIncome)
+    addRefiLoan()
+
+
+class:
+  refinanceCalculator
+  datapoints:
+    person
+    breakevenDate
+    cheaperOption
+    graph
+    analysis
+  methods:
+    breakevenDateCalc()
+    createGraph()
+    cheaperOptionCalc()
+    createAnalysis()
+    printOutputToFile()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+s
